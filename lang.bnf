@@ -1,0 +1,56 @@
+assign          = [<var> <set>] '=' <val>
+val             = <item>
+item            = <cmexp> | <string> | <sexp> | arbitrary <sexp>
+nprod           = [0-9]+ | 0x[0-9a-fA-F]+ | 0b[0-1]+ | 0o[0-7]+ 
+                    | <usop> <sexp>
+                    | <var>
+string          = ' [[:print:]] '
+vprod           = [a-z]+
+var             = <vprod>
+set             = [A-Z]+
+
+mop             = plus | minus | divide | multiply | exponent
+ulop            = not
+comp            = '==' | '<=' | '>=' | '>' | '<' | '!='
+lop             = conjunction | disjunction
+usop            = cardinality <sexp> 
+                    | complement <sexp>
+                    | sort <sexp>
+bsop            = union | intersection | difference
+smop            = in
+
+cmexp           = <nprod> 
+                    | <cmexp> ([<mop> <cmexp>)* 
+                    | <absexp>
+amexp           = <vprod> 
+                    | <amexp> (<mop> <amexp>)*
+absexp          = '|' <cmexp> '|'
+flist           = '{' <item> (',' <item>)* '}'
+plist           = '{' <bexp> '|' <membership> ',' <constraint> '}' 
+qual            =  <membership> (',' <membership> )* 
+                    | ','?<constraint>*
+sexp            = <flist> 
+                    | <plist> 
+                    | <sexp> (<bsop> <sexp>)*
+                    | <set>
+bexp            = [<cmexp> <amexp>] (<mop> [<cmexp> <amexp>])* | <sexp>
+                    |'('? <amexp> (',' <amexp>)* ')'?
+membership      = <var>(',' <var>)* <smop> <set> 
+constraint      = <amexp> (<comp> [<amexp> <cmexp>])*
+                    | <constraint> <lop> <constraint> 
+                    | <cmexp> <comp> <amexp> <comp> <cmexp>
+                    | <ulop> <constraint>
+
+/* op map */
+
+|cardinality        |#
+|plus,union         |+
+|minus,difference   |-
+|mult,intersection  |*
+|exp, complement    |^
+|not                |!
+|and                |&&
+|or                 |||
+|in                 |<-
+|arbitrary          |@
+
