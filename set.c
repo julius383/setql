@@ -166,6 +166,10 @@ struct avlnode *insert(struct avlnode *root, comparefn cfn, void *data){
   return root;
 }
 
+void add(struct avltree *tree, void *data){
+  tree->root = insert(tree->root, tree->compare, data);
+  rebalance_tree(tree);
+}
 
 void print_tree(struct avlnode *root, int level, char *fstring) {
   int spaces = 0;
@@ -196,29 +200,29 @@ int main() {
   left_heavy->compare = num_compare;
   right_heavy->compare = num_compare;
   int i = 3, j = 5, k = 2, l = 7, n = 1, o = 4;
-  left_heavy->root = insert(left_heavy->root, left_heavy->compare, &l);
-  right_heavy->root = insert(right_heavy->root, right_heavy->compare, &n);
+  add(left_heavy, &l);
+  add(right_heavy, &n);
 
-  insert(left_heavy->root, left_heavy->compare, &j);
-  insert(right_heavy->root, right_heavy->compare, &k);
-  insert(left_heavy->root, left_heavy->compare, &i);
-  insert(right_heavy->root, right_heavy->compare, &o);
+  add(left_heavy, &j);
+  add(right_heavy, &k);
+  add(left_heavy, &i);
+  add(right_heavy, &o);
 
   print_tree(left_heavy->root, 0, "(%d) %d\n");
   printf("bf: %d \n", balance_factor(left_heavy->root));
 
-  rotate_right(left_heavy, left_heavy->root);
-  print_tree(left_heavy->root, 0, "(%d) %d\n");
-  printf("bf: %d \n", balance_factor(left_heavy->root));
+  /*rotate_right(left_heavy, left_heavy->root);*/
+  /*print_tree(left_heavy->root, 0, "(%d) %d\n");*/
+  /*printf("bf: %d \n", balance_factor(left_heavy->root));*/
 
   printf("\n");
 
   print_tree(right_heavy->root, 0, "(%d) %d\n");
   printf("bf: %d \n", balance_factor(right_heavy->root));
 
-  rebalance_tree(right_heavy);
-  print_tree(right_heavy->root, 0, "(%d) %d\n");
-  printf("bf: %d \n", balance_factor(right_heavy->root));
+  /*rebalance_tree(right_heavy);*/
+  /*print_tree(right_heavy->root, 0, "(%d) %d\n");*/
+  /*printf("bf: %d \n", balance_factor(right_heavy->root));*/
 
   destroy_node(left_heavy->root);
   destroy_node(right_heavy->root);
