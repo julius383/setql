@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "set.h"
 
+/* https://stackoverflow.com/questions/3437404/min-and-max-in-c#3437484 */
 #define max(a,b) \
   ({ __typeof__ (a) _a = (a); \
    __typeof__ (b) _b = (b); \
@@ -171,6 +172,7 @@ void add(struct avltree *tree, void *data){
   rebalance_tree(tree);
 }
 
+/* http://www.randygaul.net/2015/06/15/printing-pretty-ascii-trees/ */
 void print_tree(struct avlnode *root, int level, char *fstring) {
   int spaces = 0;
   if(root){
