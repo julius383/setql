@@ -1,5 +1,5 @@
 #ifndef SET_H
-#define SET_H
+#define SET_H 1
 
 #include <stdlib.h>
 
@@ -35,7 +35,7 @@ struct avlnode *create_node(int d){
   return new_node;
 }
 void destroy_node(struct avlnode *node);
-struct avlnode *search(struct avlnode *node, comparefn cfn, void *data);
+struct avlnode *search(struct avlnode *node, void *data, comparefn cfn);
 struct avlnode *find_in_tree(struct avltree *tree, void *data);
 struct avlnode *insert(struct avlnode *root, comparefn cfn, void *data);
 void print_tree(struct avlnode *root, int level, char *fstring) ;
