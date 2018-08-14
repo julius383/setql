@@ -8,6 +8,16 @@
    __typeof__ (b) _b = (b); \
    _a > _b ? _a : _b; })
 
+struct avlnode *create_node(int d){
+  struct avlnode *new_node = malloc(sizeof(struct avlnode));
+  new_node->data = d;
+  new_node->left = NULL;
+  new_node->right = NULL;
+  new_node->parent = NULL;
+  new_node->height = 0;
+  return new_node;
+}
+
 void destroy_node(struct avlnode* node){
   if(node == NULL)
     ;
@@ -109,7 +119,7 @@ static int balance_factor(struct avlnode* root){
   return get_height(root->right) - get_height(root->left);
 }
 
-static void rebalance_tree(struct avltree* tree){
+void rebalance_tree(struct avltree* tree){
   struct avlnode* current = tree->root;
   while (current){
     struct avlnode* parent = current->parent;
@@ -190,7 +200,7 @@ void avl_add(struct avltree* tree, void* data){
   rebalance_tree(tree);
 }
 
-struct avlnode* replace_node(struct avlnode* current){
+static struct avlnode* replace_node(struct avlnode* current){
   if (current){
     if (current->left && current->right){
       struct avlnode* temp;

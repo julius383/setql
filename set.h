@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-enum color { RED, BLACK };
 typedef int (*comparefn)(const void *, const void *);
 
 union Item {
@@ -25,20 +24,14 @@ struct avltree {
   comparefn compare;
 };
 
-struct avlnode *create_node(int d){
-  struct avlnode *new_node = malloc(sizeof(struct avlnode));
-  new_node->data = d;
-  new_node->left = NULL;
-  new_node->right = NULL;
-  new_node->parent = NULL;
-  new_node->height = 0;
-  return new_node;
-}
+struct avlnode *create_node(int d);
 void destroy_node(struct avlnode *node);
 struct avlnode *search(struct avlnode *node, void *data, comparefn cfn);
+void rebalance_tree(struct avltree* tree);
 struct avlnode *find_in_tree(struct avltree *tree, void *data);
-struct avlnode *insert(struct avlnode *root, comparefn cfn, void *data);
-void print_tree(struct avlnode *root, int level, char *fstring) ;
+void avl_add(struct avltree* tree, void* data);
+void avl_remove(struct avltree* tree, void *data);
+void print_tree(struct avlnode *root, int level, char *fstring);
 int num_compare(const void *a, const void *b);
 
 #endif
