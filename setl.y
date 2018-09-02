@@ -66,7 +66,11 @@ plist: '{' varexp '|' valueprod '}'
 varexp: constmathexp
       | varmathexp
       | flist
+      | arrayexp
       ;
+
+arrayexp: varprod '[' STRING ']'
+        ;
 
 valueprod: varprod
          | varprod ',' constraintexp
@@ -75,6 +79,9 @@ valueprod: varprod
 varprod: membership
        | varprod ',' membership
        ;
+
+membership: VARI '<-' setexp
+          ;
 
 constraintexp:
              | constraintexp LOG constraint

@@ -276,8 +276,61 @@ void print_tree(struct avlnode* root, int level, char* fstring) {
     print_tree(root->right, level + 1, fstring);
   }
 }
+
 int num_compare(const void* a, const void* b){
   return *(int *)a == *(int *)b ? 0: *(int *)a >*(int *)b ? 1: -1;
+}
+
+struct avlnode* split_lt(struct avlnode* root, void* key, comparefn compare){
+  if (root) {
+    int compval = compare(&(root->data), key);
+    if (compval > 0) {
+      return split_lt(root->left, key, compare);
+    } else if (compval < 0) {
+      return join(key, root->left, split_lt(root->right, key, compare), compare);
+    } else {
+      return root->left;
+    }
+  }
+  return NULL;
+}
+
+struct avlnode* split_gt(struct avlnode* root, void* key, comparefn compare){
+  if (root){
+    int compval = compare(&(root->data), key);
+    if (compval > 0){
+      return join(key, root->right, split_gt(root->left, key, compare), compare);
+    } else if (compval < 0) {
+      return split_gt(root->right, key, compare);
+    } else {
+      return root->right;
+    }
+  }
+  return NULL;
+}
+
+struct avlnode* join(void* key, struct avlnode* left, struct avlnode* right, 
+    comparefn compare){
+  if (key) {
+    struct avlnode* new_root = create_node(*(int *)key);
+    new_root->left = left;
+    new_root->right = right;
+    if (left)
+      left->parent = new_root;
+    if (right)
+      right->parent = new_root;
+    return new_root;
+  }
+  if (!left) {
+    return right;
+  } else {
+    struct avlnode* new_root = left;
+    new_root->right = join(key, left->right, right, compare);
+    if (new_root->right)
+      new_root->right->parent = new_root;
+    return new_root;
+  }
+  return NULL;
 }
 
 int main() {
@@ -292,7 +345,10 @@ int main() {
   print_tree(test_tree->root, 0, "(%d) %d\n");
   avl_remove(test_tree, &l);
   print_tree(test_tree->root, 0, "(%d) %d\n");
+  puts("\n");
+  print_tree(split_lt(test_tree->root, &i, num_compare), 0, "(%d) %d\n");
 
   destroy_node(test_tree->root);
   return 0;
 }
+
