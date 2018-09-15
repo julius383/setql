@@ -12,8 +12,9 @@
 %token LOG                  /* logical operators */
 %token VUSOP                /* Set operations that produce non set value */
 %token FUNC                 /* function */
+%token ASSIGN
 
-%right '='
+%right ASSIGN
 %nonassoc FUNC CMP
 %left SUSOP
 %left SBSOP
@@ -27,8 +28,8 @@ exp:
    | SETI
    | VARI
    | item
-   | SETI '=' item
-   | VARI '=' item
+   | SETI ASSIGN item
+   | VARI ASSIGN item
    ;
 
 item: constmathexp
