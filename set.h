@@ -29,7 +29,7 @@ void tree_set(struct avltree *tree, struct avlnode* root, comparefn compare);
 void rebalance_tree(struct avltree* tree);
 struct avlnode* search(struct avltree *tree, void* data);
 void insert(struct avltree* tree,  void* data);
-void avl_remove(struct avltree* tree, void *data);
+struct avlnode* avl_remove(struct avltree* tree, void *data);
 void print_tree(struct avlnode* root, int level, char* fstring) ;
 int num_compare(const void* a, const void* b);
 int split_lt(void* key, struct avltree* tree, struct avltree* result);

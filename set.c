@@ -233,7 +233,7 @@ static struct avlnode* replace_node(struct avlnode* current){
   return NULL;
 }
 
-void avl_remove(struct avltree* tree, void *data){
+struct avlnode* avl_remove(struct avltree* tree, void *data){
   if (tree->root){
     struct avlnode* node = search(tree, data);
     if (!tree->compare(&node->data, data)){
@@ -253,9 +253,11 @@ void avl_remove(struct avltree* tree, void *data){
         node->parent->left = new_node;
       update_heights(new_node);
       rebalance_tree(tree);
-      free(node); /* release memory occupied by removed node */
+      return node; /* return pointer to memory to be freed when not needed */
     }
+    return NULL;
   }
+  return NULL;
 }
 
 /* http://www.randygaul.net/2015/06/15/printing-pretty-ascii-trees/ */
@@ -265,7 +267,7 @@ void print_tree(struct avlnode* root, int level, char* fstring) {
     for(int i = 1;i < level * 2;i++){
       if (level == 1)
         spaces += 1;
-      else if(i % 2 != 0)
+      else if(i % 2)
         printf(" |");
       else
         spaces += 2;
@@ -385,9 +387,35 @@ int set_union(struct avltree *tree1, struct avltree *tree2, struct avltree* resu
     set_union(&left, &temp_left, &temp_left_result);
     set_union(&right, &temp_right, &temp_right_result);
     join(&(tree2->root->data), &temp_left_result, &temp_right_result, result);
-    /*result->root = join(&(root2->data), set_union(left, root2->left, compare)*/
-        /*, set_union(right, root2->right, compare), compare);*/
-    /*result->compare = compare;*/
+    result->root->height = 0;
+    update_heights(result->root);
+    rebalance_tree(result);
+    return 0;
+  }
+}
+
+int set_difference(struct avltree* tree1, struct avltree* tree2, struct avltree* result){
+  if (!tree1->root){
+    tree_set(result, tree1->root, tree1->compare);
+    return 0;
+  } else if (!tree2->root) {
+    tree_set(result, tree1->root, tree1->compare);
+    return 0;
+  } else {
+    struct avltree left, right;
+    split_gt(&(tree2->root->data), tree1, &right);
+    split_lt(&(tree2->root->data), tree1, &left);
+
+    struct avltree tree2_left, tree2_right;
+    struct avltree temp_left_result, temp_right_result;
+    tree_set(&tree2_left, tree2->root->left, tree2->compare);
+    tree_set(&tree2_right, tree2->root->right, tree2->compare);
+
+    set_difference(&left, &tree2_left, &temp_left_result);
+    set_difference(&right, &tree2_right, &temp_right_result);
+
+    join(NULL, &temp_left_result, &temp_right_result, result);
+
     result->root->height = 0;
     update_heights(result->root);
     rebalance_tree(result);
@@ -405,7 +433,9 @@ int main() {
   /*insert(test_tree, &l);*/
   insert(test_tree, &i);
   insert(test_tree, &o);
-  avl_remove(test_tree, &o);
+  struct avlnode* node = avl_remove(test_tree, &o);
+  if(node)
+    free(node);
   insert(test_tree, &j);
   insert(test_tree, &k);
   print_tree(test_tree->root, 0, "(%d) %d\n");
@@ -413,6 +443,7 @@ int main() {
 
   /*insert(test_tree2, &m);*/
   insert(test_tree2, &p);
+  insert(test_tree2, &l);
   insert(test_tree2, &q);
   insert(test_tree2, &r);
   insert(test_tree2, &s);
@@ -422,9 +453,12 @@ int main() {
   puts("\n");
   /*lt = split_lt(test_tree->root, &j, num_compare);*/
   /*gt = split_gt(test_tree->root, &j, num_compare);*/
-  struct avltree union_tree;
+  struct avltree union_tree, diff_tree;
   set_union(test_tree, test_tree2, &union_tree);
+  set_difference(test_tree, test_tree2, &diff_tree);
   print_tree(union_tree.root, 0, "(%d) %d\n");
+  puts("\n");
+  print_tree(diff_tree.root, 0, "(%d) %d\n");
   puts("\n");
   /*print_tree(gt, 0, "(%d) %d\n");*/
 
