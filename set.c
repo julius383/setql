@@ -8,7 +8,8 @@
    __typeof__ (b) _b = (b); \
    _a > _b ? _a : _b; })
 
-struct avlnode *node_create(int d){
+struct avlnode *node_create(int d)
+{
   struct avlnode *new_node = malloc(sizeof(struct avlnode));
   new_node->data = d;
   new_node->left = NULL;
@@ -18,10 +19,11 @@ struct avlnode *node_create(int d){
   return new_node;
 }
 
-void node_destroy_recursive(struct avlnode* node){
-  if(node == NULL)
+void node_destroy_recursive(struct avlnode *node)
+{
+  if (node == NULL)
     ;
-  else{
+  else {
     node_destroy_recursive(node->left);
     node_destroy_recursive(node->right);
     free(node);
@@ -31,22 +33,24 @@ void node_destroy_recursive(struct avlnode* node){
 /* updates the heights of all nodes below the one given
  * assuming the passed in node has the correct height
  * this is done so balance factor can be computed accurately*/
-static void update_heights(struct avlnode* node){
-  if(node){
-    if(node->right){
+static void update_heights(struct avlnode *node)
+{
+  if (node) {
+    if (node->right) {
       node->right->height = node->height + 1;
       update_heights(node->right);
     }
-    if(node->left){
+    if (node->left) {
       node->left->height = node->height + 1;
       update_heights(node->left);
     }
   }
 }
 
-struct avltree* tree_create(comparefn compare, void *data){
-  struct avltree* tree = malloc(sizeof(struct avltree));
-  if(tree) {
+struct avltree *tree_create(void *data, comparefn compare)
+{
+  struct avltree *tree = malloc(sizeof(struct avltree));
+  if (tree) {
     tree->root = node_create(*(int *)data);
     tree->compare = compare;
     return tree;
@@ -54,14 +58,16 @@ struct avltree* tree_create(comparefn compare, void *data){
   return NULL;
 }
 
-void tree_set(struct avltree *tree, struct avlnode* root, comparefn compare){
+void tree_set(struct avltree *tree, struct avlnode *root, comparefn compare)
+{
   tree->root = root;
   tree->compare = compare;
 }
 
-int tree_member(void *data, struct avltree* tree) {
+int tree_member(void *data, struct avltree *tree)
+{
   if (tree->root) {
-    struct avlnode *n = tree_search(tree, data);
+    struct avlnode *n = tree_search(data, tree);
     return !tree->compare(&(n->data), data);
   }
   return 0;
@@ -70,21 +76,19 @@ int tree_member(void *data, struct avltree* tree) {
 /* rotate_left and rotate_right are the functions used to
  * maintain the avl tree invariants
  * */
-static void rotate_left(struct avltree* tree, struct avlnode* node){ 
-  struct avlnode* right = node->right;
+static void rotate_left(struct avltree *tree, struct avlnode *node)
+{
+  struct avlnode *right = node->right;
   if (node == tree->root) {
     tree->root = right;
-  }
-  else if (node == node->parent->left) {
+  } else if (node == node->parent->left) {
     node->parent->left = right;
-  }
-  else {
+  } else {
     node->parent->right = right;
   }
   node->right = right->left;
-  if(right->left){
+  if (right->left)
     right->left->parent = node;
-  }
   right->left = node;
   right->parent = node->parent;
   node->parent = right;
@@ -96,21 +100,19 @@ static void rotate_left(struct avltree* tree, struct avlnode* node){
 
 }
 
-static void rotate_right(struct avltree* tree, struct avlnode* node){
-  struct avlnode* left = node->left;
+static void rotate_right(struct avltree *tree, struct avlnode *node)
+{
+  struct avlnode *left = node->left;
   if (node == tree->root) {
     tree->root = left;
-  }
-  else if (node == node->parent->left) {
+  } else if (node == node->parent->left) {
     node->parent->left = left;
-  }
-  else {
+  } else {
     node->parent->right = left;
   }
   node->left = left->right;
-  if(left->right){
+  if (left->right)
     left->right->parent = node;
-  }
   left->right = node;
   node->parent = left;
 
@@ -123,8 +125,9 @@ static void rotate_right(struct avltree* tree, struct avlnode* node){
 /* returns the height of the entire subtree under root
  * by finding the maximum value of all the nodes below it
  */
-static int get_height(struct avlnode* root){
-  while(root){
+static int get_height(struct avlnode *root)
+{
+  while (root) {
     int i = get_height(root->left);
     int j = get_height(root->right);
     int k = root->height;
@@ -138,49 +141,46 @@ static int get_height(struct avlnode* root){
  * of the left subtree. A value > 1 indicates the tree
  * is right heavy and a value < 1 the tree is left heavy
  * */
-static int balance_factor(struct avlnode* root){
+static int balance_factor(struct avlnode *root)
+{
   return get_height(root->right) - get_height(root->left);
 }
 
-void rebalance_tree(struct avltree* tree){
-  struct avlnode* current = tree->root;
-  while (current){
-    struct avlnode* parent = current->parent;
+void tree_rebalance(struct avltree *tree)
+{
+  struct avlnode *current = tree->root;
+  while (current) {
+    struct avlnode *parent = current->parent;
     int balance = balance_factor(current);
-    if(balance == -2){ /* left heavy so rotate right*/
-      /* check if left subtree is right heavy
-       * and apply additional left rotation
-       * */
+    if (balance == -2) { /* left heavy so rotate right*/
       int rightbalance = balance_factor(current->left);
-      if (rightbalance > 0){
+      if (rightbalance > 0) {
         rotate_right(tree, current);
         rotate_left(tree, current);
-      }else {
+      } else {
         rotate_right(tree, current);
       }
-    }else if (balance == 2) {/* right heavy */
-      /* check if right subtree is left heavy 
-       * and apply additional right rotation
-       * */
+    } else if (balance == 2) {/* right heavy */
       int leftbalance = balance_factor(current->right);
-      if (leftbalance < 0){
+      if (leftbalance < 0) {
         rotate_left(tree, current);
         rotate_right(tree, current);
-      }else {
+      } else {
         rotate_left(tree, current);
       }
     }
-    if(!current->parent) /* change tree root */
+    if (!current->parent)
       tree->root = current;
     current = parent;
   }
 }
-
-struct avlnode* tree_search(struct avltree *tree, void* data){
+/* returns pointer to found node or position data should be inserted */
+struct avlnode *tree_search(void *data, struct avltree *tree)
+{
   struct avlnode *current = tree->root;
   while (current) {
       int compval = tree->compare(&current->data, data);
-      if((compval < 0) && current->right){
+      if ((compval < 0) && current->right) {
         current = current->right;
       } else if ((compval > 0) && current->left) {
         current = current->left;
@@ -188,20 +188,21 @@ struct avlnode* tree_search(struct avltree *tree, void* data){
         break; /* node found break out of loop to return */
       }
   }
-  return current; /* returns found node or position data should be inserted*/
+  return current;
 }
 
-void insert(struct avltree* tree,  void* data){
-  if(!tree->root){
+void tree_insert(void *data, struct avltree *tree)
+{
+  if (!tree->root) {
     tree->root = node_create(*(int *)data);
-  }else {
-    struct avlnode* root_position = tree_search(tree, data);
+  } else {
+    struct avlnode *root_position = tree_search(data, tree);
     int compval = tree->compare(&root_position->data, data);
     if (compval < 0) {
       root_position->right = node_create(*(int *)data);
       root_position->right->parent = root_position;
       root_position->right->height = root_position->height + 1;
-    }else if (compval > 0) {
+    } else if (compval > 0) {
       root_position->left = node_create(*(int *)data);
       root_position->left->parent = root_position;
       root_position->left->height = root_position->height + 1;
@@ -210,47 +211,47 @@ void insert(struct avltree* tree,  void* data){
   }
 }
 
-static struct avlnode* replace_node(struct avlnode* current){
-  if (current){
-    if (current->left && current->right){
-      struct avlnode* temp;
+/* returns root of new tree under current when current is removed */
+static struct avlnode *replace_node(struct avlnode *current)
+{
+  if (current) {
+    if (current->left && current->right) {
+      struct avlnode *temp;
       temp = current->right;
-      struct avlnode* subtree_min = temp;
+      struct avlnode *subtree_min = temp;
       /* find min of current->right and set its left node to
        * the current's left*/
-      for (;subtree_min->left; subtree_min = subtree_min->left) 
+      for (;subtree_min->left; subtree_min = subtree_min->left)
         ;
       current->left->parent = subtree_min;
       subtree_min->left = current->left;
       current->right->height -= 1;
       return temp;
-    }else if (current->right){
-      current->right->height -= 1; /* goes up in tree so reduce height*/
+    } else if (current->right) {
+      current->right->height -= 1;
       update_heights(current->right);
-      return current->right; /* replace with right since no left*/
-    }else if (current->left){
+      return current->right;
+    } else if (current->left) {
       current->left->height -= 1;
       update_heights(current->left);
-      return current->left; /* replace with left since no right*/
-    }
-    else{
-      return NULL; /* since has no children replace with nothing*/
+      return current->left;
+    } else {
+      return NULL;
     }
   }
-  /* should never get here */
   return NULL;
 }
 
-struct avlnode* avl_remove(struct avltree* tree, void *data){
-  if (tree->root){
-    struct avlnode* node = tree_search(tree, data);
-    if (!tree->compare(&node->data, data)){
-      struct avlnode* new_node = replace_node(node);
-      if (new_node){
-        if (node->parent){
+struct avlnode *tree_remove(void *data, struct avltree *tree)
+{
+  if (tree->root) {
+    struct avlnode *node = tree_search(data, tree);
+    if (!tree->compare(&node->data, data)) {
+      struct avlnode *new_node = replace_node(node);
+      if (new_node) {
+        if (node->parent) {
           new_node->parent = node->parent;
-        }
-        else {
+        } else {
           new_node->parent = NULL;
           tree->root = new_node;
         }
@@ -260,7 +261,7 @@ struct avlnode* avl_remove(struct avltree* tree, void *data){
       else
         node->parent->left = new_node;
       update_heights(new_node);
-      rebalance_tree(tree);
+      tree_rebalance(tree);
       return node; /* return pointer to memory to be freed when not needed */
     }
     return NULL;
@@ -269,44 +270,46 @@ struct avlnode* avl_remove(struct avltree* tree, void *data){
 }
 
 /* http://www.randygaul.net/2015/06/15/printing-pretty-ascii-trees/ */
-void print_tree(struct avlnode* root, int level, char* fstring) {
+void tree_print(struct avlnode *root, int level, char *fstring)
+{
   int spaces = 0;
-  if(root){
-    for(int i = 1;i < level * 2;i++){
+  if (root) {
+    for (int i = 1;i < level * 2;i++) {
       if (level == 1)
         spaces += 1;
-      else if(i % 2)
+      else if (i % 2)
         printf(" |");
       else
         spaces += 2;
     }
-    for(;spaces > 0;spaces--)
+    for (;spaces > 0;spaces--)
       printf(" ");
-    level == 0 ? 0 :printf("`--");
+    level == 0 ? 0 : printf("`--");
     printf(fstring, root->data, root->height);
-    print_tree(root->left, level + 1, fstring);
-    print_tree(root->right, level + 1, fstring);
+    tree_print(root->left, level + 1, fstring);
+    tree_print(root->right, level + 1, fstring);
   }
 }
 
-int num_compare(const void* a, const void* b){
-  return *(int *)a == *(int *)b ? 0: *(int *)a >*(int *)b ? 1: -1;
+int num_compare(const void *a, const void *b)
+{
+  return *(int *)a == *(int *)b ? 0 : *(int *)a >*(int *)b ? 1: -1;
 }
 
-int split_lt(void* key, struct avltree* tree, struct avltree* result){
+int split_lt(void *key, struct avltree *tree, struct avltree *result)
+{
   if (tree->root) {
     int compval = tree->compare(&(tree->root->data), key);
     if (compval > 0) {
       struct avltree temp_left;
       tree_set(&temp_left, tree->root->left, tree->compare);
-      /*temp_left->root = tree->root->left;*/
-      /*temp_left->compare = tree->compare;*/
       split_lt(key, &temp_left, result);
       return 0;
     } else if (compval < 0) {
       struct avltree temp_right, temp_left, temp_result;
       tree_set(&temp_left, tree->root->left, tree->compare);
       tree_set(&temp_right, tree->root->right, tree->compare);
+
       split_lt(key, &temp_right, &temp_result);
       join(&(tree->root->data), &temp_left, &temp_result, result);
       return 0;
@@ -319,19 +322,22 @@ int split_lt(void* key, struct avltree* tree, struct avltree* result){
   return -1;
 }
 
-int split_gt(void* key, struct avltree* tree, struct avltree* result){
-  if (tree->root){
+int split_gt(void *key, struct avltree *tree, struct avltree *result)
+{
+  if (tree->root) {
     int compval = tree->compare(&(tree->root->data), key);
-    if (compval > 0){
+    if (compval > 0) {
       struct avltree temp_right, temp_left, temp_result;
       tree_set(&temp_left, tree->root->left, tree->compare);
       tree_set(&temp_right, tree->root->right, tree->compare);
+
       split_gt(key, &temp_left, &temp_result);
       join(&(tree->root->data), &temp_right, &temp_result, result);
       return 0;
     } else if (compval < 0) {
       struct avltree temp_right;
       tree_set(&temp_right, tree->root->right, tree->compare);
+
       split_gt(key, &temp_right, result);
       return 0;
     } else {
@@ -343,9 +349,19 @@ int split_gt(void* key, struct avltree* tree, struct avltree* result){
   return -1;
 }
 
-int join(void* key, struct avltree* left_tree, struct avltree* right_tree, struct avltree* result){
+/*
+ * The return types for join, set_difference, set_intersection, set_union have the
+ * following meanings:
+ * 0 means the operation was carried out and the result may be some combination of
+ * the arguments,
+ * 1 means the result is just the first tree argument,
+ * 2 means the result is the second tree argument and,
+ * -1 means the result is a null root tree
+ * */
+int join(void *key, struct avltree *left_tree, struct avltree *right_tree, struct avltree *result)
+{
   if (key) {
-    struct avlnode* new_root = node_create(*(int *)key);
+    struct avlnode *new_root = node_create(*(int *)key);
     new_root->left = left_tree->root;
     new_root->right = right_tree->root;
     tree_set(result, new_root, left_tree->compare);
@@ -357,32 +373,32 @@ int join(void* key, struct avltree* left_tree, struct avltree* right_tree, struc
   }
   if (!left_tree->root) {
     tree_set(result, right_tree->root, right_tree->compare);
-    /*result->root = right_tree->root;*/
-    /*result->compare = right_tree->compare;*/
-    return 0;
-  }
-  else {
+    return 2;
+  } else {
     tree_set(result, left_tree->root, left_tree->compare);
-    struct avltree temp_right;
+
+    struct avltree temp_right, temp_result;
     tree_set(&temp_right, left_tree->root->right, left_tree->compare);
-    struct avltree temp_result;
+
     join(key, &temp_right, right_tree, &temp_result);
     result->root->right = temp_result.root;
     if (result->root->right)
       result->root->right->parent = result->root;
     return 0;
   }
+  tree_set(result, (struct avlnode*)NULL, tree->compare);
   return -1;
 }
 
-int set_union(struct avltree *tree1, struct avltree *tree2, struct avltree* result){
-  if (!tree1->root){
+int set_union(struct avltree *tree1, struct avltree *tree2, struct avltree *result)
+{
+  if (!tree1->root) {
     tree_set(result, tree2->root, tree2->compare);
-    return 0;
-  }else if (!tree2->root){
+    return 2;
+  } else if (!tree2->root) {
     tree_set(result, tree1->root, tree1->compare);
     return 1;
-  }else{
+  } else {
     struct avltree left;
     struct avltree right;
     split_gt(&(tree2->root->data), tree1, &right);
@@ -397,19 +413,22 @@ int set_union(struct avltree *tree1, struct avltree *tree2, struct avltree* resu
     join(&(tree2->root->data), &temp_left_result, &temp_right_result, result);
     result->root->height = 0;
     update_heights(result->root);
-    rebalance_tree(result);
+    tree_rebalance(result);
     return 0;
   }
+  tree_set(result, (struct avlnode*)NULL, tree->compare);
+  return -1;
 }
 
-int set_difference(struct avltree* tree1, struct avltree* tree2, struct avltree* result){
-  if (!tree1->root){
+int set_difference(struct avltree *tree1, struct avltree *tree2, struct avltree *result)
+{
+  if (!tree1->root) {
     tree_set(result, NULL, tree1->compare);
-    return 0;
-  }else if (!tree2->root) {
+    return -1;
+  } else if (!tree2->root) {
     tree_set(result, tree1->root, tree1->compare);
-    return 0;
-  }else {
+    return 1;
+  } else {
     struct avltree left, right;
     split_gt(&(tree2->root->data), tree1, &right);
     split_lt(&(tree2->root->data), tree1, &left);
@@ -427,20 +446,22 @@ int set_difference(struct avltree* tree1, struct avltree* tree2, struct avltree*
     if (result->root) {
       result->root->height = 0;
       update_heights(result->root);
-      rebalance_tree(result);
-      return 0;
+      tree_rebalance(result);
     }
-    return 1;
+    return 0;
   }
+  tree_set(result, (struct avlnode*)NULL, tree->compare);
+  return -1;
 }
 
-int set_intersection(struct avltree* tree1, struct avltree* tree2, struct avltree* result){
-  if (!tree1->root){
+int set_intersection(struct avltree *tree1, struct avltree *tree2, struct avltree *result)
+{
+  if (!tree1->root) {
     tree_set(result, NULL, tree1->compare);
-    return 0;
-  }else if (!tree2->root) {
+    return -1;
+  } else if (!tree2->root) {
     tree_set(result, NULL, tree2->compare);
-    return 0;
+    return -1;
   } else {
     struct avltree left, right;
     split_gt(&(tree2->root->data), tree1, &right);
@@ -454,8 +475,6 @@ int set_intersection(struct avltree* tree1, struct avltree* tree2, struct avltre
     set_intersection(&left, &tree2_left, &temp_left_result);
     set_intersection(&right, &tree2_right, &temp_right_result);
 
-    /*struct avlnode* n = tree_search(tree1, &(tree2->root->data));*/
-    /*printf(" %s \n"tree_member((&tree2->root->data), tree1));*/
     if (tree_member((&tree2->root->data), tree1)) {
       join(&(tree2->root->data), &temp_left_result, &temp_right_result, result);
     } else {
@@ -464,55 +483,47 @@ int set_intersection(struct avltree* tree1, struct avltree* tree2, struct avltre
     if (result->root) {
       result->root->height = 0;
       update_heights(result->root);
-      rebalance_tree(result);
+      tree_rebalance(result);
       return 0;
     }
   }
-  return 1;
+  tree_set(result, (struct avlnode*)NULL, tree->compare);
+  return -1;
 }
 
-int main() {
+int main()
+{
   int i = 8, j = 5, k = 2, l = 7, o = 4, m = 11, p = 12, q = 9, r = 6, s = 10;
-  struct avltree* test_tree = tree_create(num_compare, &l);
-  struct avltree* test_tree2 = tree_create(num_compare, &m);
-  /*struct avlnode *lt, *gt;*/
-  /*test_tree->compare = num_compare;*/
-  /*test_tree2->compare = num_compare;*/
-  /*insert(test_tree, &l);*/
-  insert(test_tree, &i);
-  insert(test_tree, &o);
-  struct avlnode* node = avl_remove(test_tree, &o);
-  if(node)
+  struct avltree *test_tree = tree_create(&l, num_compare);
+  struct avltree *test_tree2 = tree_create(&m, num_compare);
+  tree_insert(&i, test_tree);
+  tree_insert(&o, test_tree);
+  struct avlnode *node = tree_remove(&o, test_tree);
+  if (node)
     free(node);
-  insert(test_tree, &j);
-  insert(test_tree, &k);
-  insert(test_tree, &s);
-  print_tree(test_tree->root, 0, "(%d) %d\n");
+  tree_insert(&j, test_tree);
+  tree_insert(&k, test_tree);
+  tree_insert(&s, test_tree);
+  tree_print(test_tree->root, 0, "(%d) %d\n");
   puts("\n");
 
-  /*insert(test_tree2, &m);*/
-  insert(test_tree2, &p);
-  insert(test_tree2, &l);
-  insert(test_tree2, &q);
-  insert(test_tree2, &r);
-  insert(test_tree2, &s);
-  print_tree(test_tree2->root, 0, "(%d) %d\n");
-  /*avl_remove(test_tree, &l);*/
-  /*print_tree(test_tree->root, 0, "(%d) %d\n");*/
+  tree_insert(&p, test_tree2);
+  tree_insert(&l, test_tree2);
+  tree_insert(&q, test_tree2);
+  tree_insert(&r, test_tree2);
+  tree_insert(&s, test_tree2);
+  tree_print(test_tree2->root, 0, "(%d) %d\n");
   puts("\n");
-  /*lt = split_lt(test_tree->root, &j, num_compare);*/
-  /*gt = split_gt(test_tree->root, &j, num_compare);*/
   struct avltree union_tree, diff_tree, inter_tree;
   set_union(test_tree, test_tree2, &union_tree);
   set_difference(test_tree, test_tree2, &diff_tree);
   set_intersection(test_tree2, test_tree, &inter_tree);
   puts("Union\n");
-  print_tree(union_tree.root, 0, "(%d) %d\n");
+  tree_print(union_tree.root, 0, "(%d) %d\n");
   puts("Difference\n");
-  print_tree(diff_tree.root, 0, "(%d) %d\n");
+  tree_print(diff_tree.root, 0, "(%d) %d\n");
   puts("Intersection\n");
-  print_tree(inter_tree.root, 0, "(%d) %d\n");
-  /*print_tree(gt, 0, "(%d) %d\n");*/
+  tree_print(inter_tree.root, 0, "(%d) %d\n");
 
   node_destroy_recursive(test_tree->root);
   node_destroy_recursive(test_tree2->root);
